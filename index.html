@@ -11,65 +11,195 @@
             margin: 0;
             overflow: hidden;
             height:100%;
+            
+        }
+        body
+        {
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
         canvas
         {
-            border: solid, 2px, dodgerblue;
-            
+          border: 2px solid dodgerBlue;
+        }
+        
+        #mylog
+        {
+          position: absolute;
+          left: 0;
+          top: 0;
+          height: 50%;
+          overflow-y: scroll;
+          border: 2px solid black;
+          width: 30%;
         }
     </style>
     <script>
+    
+    
     var objects = [];
-    var ball = {
-        radius: 5,
-        x: 50,
-        y: 50,
-        mass: 40,
-        yVelocity: -20,
-        xVelocity: 0,
-        yAcceleration: 98,
-        xAcceleration: 0,
-        elasticity: 0.5,
-        color: "#000000"
+    var floor = {
+      
     };
-    var ball2 = {
-        radius: 5,
-        x: 100,
-        y: 50,
-        mass: 40,
-        yVelocity: -20,
-        xVelocity: 0,
-        yAcceleration: 98,
-        xAcceleration: 0,
-        elasticity: 0.5,
-        color: "#000000"
-    };
-    var ball3 = {
-        radius: 5,
-        x: 150,
-        y: 50,
-        mass: 40,
-        yVelocity: -20,
-        xVelocity: -20,
-        yAcceleration: 98,
-        xAcceleration: 0,
-        elasticity: 0.5,
-        color: "#000000"
-    };
+    
+    class PhysicalObject
+    {
+      constructor(x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, elasticity, color)
+      {
+        this.x = x;
+        this.y = y;
+        this.mass = mass;
+        this.xVelocity = xVelocity;
+        this.yVelocity = yVelocity;
+        this.xAcceleration = xAcceleration;
+        this.yAcceleration = yAcceleration;
+        this.elasticity = elasticity;
+        this.color = color;
+      }
+      
+      setX( x ) { this.x = x; return x; }
+      setY( y ) { this.y = y; return y; }
+      setMass( mass ) { this.mass = mass; return mass; }
+      setXVelocity( xVelocity ) { this.xVelocity = xVelocity; return xVelocity; }
+      setYVelocity( yVelocity ) { this.yVelocity = yVelocity; return yVelocity; }
+      setXAcceleration( xAcceleration ) { this.xAcceleration = xAcceleration; return xAcceleration; }
+      setYAcceleration( yAcceleration ) { this.yAcceleration = yAcceleration; return yAcceleration; }
+      setElasticity( elasticity ) { this.elasticity = elasticity; return elasticity; }
+      setColor( color ) { this.color = color; return color; }
+      
+    }
+    
+    class Ball extends PhysicalObject
+    {
+      /*
+      constructor({radius, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, elasticity, color})
+      {
+        constructor(radius, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, elasticity, color);
+      }
+      */
+      constructor({radius = 5, x = 0, y = 0, mass = 100, xVelocity = 0, yVelocity = 0, xAcceleration = 0, yAcceleration = 9.8, elasticity = 0.5, color = "#000000"})
+      {
+        super(x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, elasticity, color);
+        this.radius = radius;
+      }
+      
+      draw()
+      {
+        ctx.strokeStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        ctx.stroke();
+      }
+      
+      setRadius( radius ) { this.radius = radius; return radius; }
+      
+    }
+    
+    var ball = new Ball({
+      radius: 50,
+      
+    });
+    var ball2 = new Ball({
+      radius: 10,
+      x: 100,
+      y: 50,
+      color: "#FF00FF"
+    });
+    var ball3 = new Ball({
+      radius: 10,
+      x: 150,
+      y: 50,
+      yVelocity: -50,
+      yAcceleration: 98,
+      color: "#FF0000"
+    });
+    
     objects.push(ball2);
     
     objects.push(ball3);
-    
     objects.push(ball);
     // const g = {direction: 0, magnitude: 9.8};
     var canvas;
     var ctx;
         $( document ).ready(function()
         {
-             canvas = document.getElementById("main-canvas");
+              var baseLogFunction = console.log;
+          console.log = function(){
+              baseLogFunction.apply(console, arguments);
+      
+              var args = Array.prototype.slice.call(arguments);
+              for(var i=0;i<args.length;i++){
+                  var node = createLogNode(args[i]);
+                  document.querySelector("#mylog").appendChild(node);
+              }
+      
+          }
+      
+          function createLogNode(message){
+              var node = document.createElement("div");
+              var textNode = document.createTextNode(message);
+              node.appendChild(textNode);
+              return node;
+          }
+      
+          window.onerror = function(message, url, linenumber) {
+              console.log("JavaScript error: " + message + " on line " +
+                  linenumber + " for " + url);
+          }
+          
+      console.log("test");
+      console.log("test");
+      //console.log("the error below is intentional to test error handling");
+      //throw new Error("Test Error");
+    
+              canvas = document.getElementById("main-canvas");
+              render();
+              function render()
+              {
+                const dimensions = getObjectFitSize(
+                  true,
+                  canvas.clientWidth,
+                  canvas.clientHeight,
+                  canvas.width,
+                  canvas.height
+                );
+                canvas.width = dimensions.width;
+                canvas.height = dimensions.height;
+                ctx = canvas.getContext("2d");
+                updateCanvas( objects );
+              }
+              
+            // adapted from: https://www.npmjs.com/package/intrinsic-scale
+            function getObjectFitSize(
+              contains /* true = contain, false = cover */,
+              containerWidth,
+              containerHeight,
+              width,
+              height
+            ) {
+              var doRatio = width / height;
+              var cRatio = containerWidth / containerHeight;
+              var targetWidth = 0;
+              var targetHeight = 0;
+              var test = contains ? doRatio > cRatio : doRatio < cRatio;
             
-             ctx = canvas.getContext("2d");
-              updateCanvas( objects );
+              if (test) {
+                targetWidth = containerWidth;
+                targetHeight = targetWidth / doRatio;
+              } else {
+                targetHeight = containerHeight;
+                targetWidth = targetHeight * doRatio;
+              }
+            
+              return {
+                width: targetWidth,
+                height: targetHeight,
+                x: (containerWidth - targetWidth) / 2,
+                y: (containerHeight - targetHeight) / 2
+              };
+            }
+        
             
             // may not be nec while setTimeout on fixed interval..
             var start = performance.now();
@@ -98,12 +228,13 @@
             }
             });
             checkCollisions( objects );
-            console.log(timePassed);
+            //console.log(timePassed);
             updateCanvas( objects );
         }
         
         function checkCollisions( objects )
         {
+          if(objects.length === 1) return;
           for (let i = 0; i < objects.length; i++)
           {
             for (let j = i + 1; j < objects.length; j++)
@@ -120,12 +251,10 @@
         
         function updateCanvas( objects )
         {
+          
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             objects.forEach(object => {
-              ctx.strokeStyle = object.color;
-              ctx.beginPath();
-              ctx.arc(object.x, object.y, object.radius, 0, 2 * Math.PI);
-              ctx.stroke();
+              object.draw();
             });
             }
         
@@ -150,7 +279,7 @@
 </head>
 <body>
     <canvas id="main-canvas">
-
     </canvas>
+    <div id="mylog"></div>
 </body>
 </html>
