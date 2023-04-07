@@ -1,49 +1,47 @@
-const physicsSim = {
-    maxFps: 60,
-    objects : []
+
+var lastFrames = [];
+var frameCounter = 0;
+const PhysicsSim = {
+    targetFPS: 60,
+    objects : [],
+    isRunning : true
 }
 
 
 class PhysicalObject
 {
-    constructor(x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, elasticity, color)
+    constructor(x, y, mass, vx, vy, ax, ay, elasticity, color)
     {
-        this.x = x;
-        this.y = y;
-        this.mass = mass;
-        this.xVelocity = xVelocity;
-        this.yVelocity = yVelocity;
-        this.xAcceleration = xAcceleration;
-        this.yAcceleration = yAcceleration;
-        this.elasticity = elasticity;
-        this.color = color;
+        this.x = x || 0;
+        this.y = y || 0;
+        this.mass = mass || 100;
+        this.vx = vx || 0;
+        this.vy = vy || 0;
+        this.ax = ax || 0;
+        this.ay = ay || 9.8;
+        this.elasticity = elasticity || 0.5;
+        this.color = color || "#000000";
     }
   
-  setX( x ) { this.x = x; return x; }
-  setY( y ) { this.y = y; return y; }
-  setMass( mass ) { this.mass = mass; return mass; }
-  setXVelocity( xVelocity ) { this.xVelocity = xVelocity; return xVelocity; }
-  setYVelocity( yVelocity ) { this.yVelocity = yVelocity; return yVelocity; }
-  setXAcceleration( xAcceleration ) { this.xAcceleration = xAcceleration; return xAcceleration; }
-  setYAcceleration( yAcceleration ) { this.yAcceleration = yAcceleration; return yAcceleration; }
-  setElasticity( elasticity ) { this.elasticity = elasticity; return elasticity; }
+  setX( x ) { return setNumValue( x, this.x ) }
+  setY( y ) { return setNumValue( y, this.y ) }
+  setMass( mass ) { return setNumValue( mass, this.mass ) }
+  setVX( vx ) { return setNumValue( vx, this.vx ) }
+  setVY( vy ) { return setNumValue( vy, this.vy ) }
+  setAX( ax ) { return setNumValue( ax, this.ax ) }
+  setAY( ay ) { return setNumValue( ay, this.ay ) }
+  setElasticity( elasticity ) { return setNumValue( elasticity, this.elasticity ) }
   setColor( color ) { this.color = color; return color; }
   
 }
-    
+
 class Ball extends PhysicalObject
 {
-  /*
-  constructor({radius, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, elasticity, color})
+  constructor({radius, x, y, mass, vx, vy, ax, ay, elasticity, color})
   {
-    constructor(radius, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, elasticity, color);
-  }
-  */
-  constructor({radius = 5, x = 0, y = 0, mass = 100, xVelocity = 0, yVelocity = 0, xAcceleration = 0, yAcceleration = 9.8, elasticity = 0.5, color = "#000000"})
-  {
-    super(x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, elasticity, color);
-    this.radius = radius;
-    physicsSim.objects.push(this);
+    super(x, y, mass, vx, vy, ax, ay, elasticity, color);
+    this.radius = radius || 5;
+    PhysicsSim.objects.push(this);
   }
   
   draw()
@@ -54,83 +52,143 @@ class Ball extends PhysicalObject
     ctx.stroke();
   }
   
-  setRadius( radius ) { this.radius = radius; return radius; }
+  setRadius( radius ) { return setNumValue( radius, this.radius ) }
   
 }
 
-$( document ).ready(function()
+class Rect extends PhysicalObject
 {
-    // may not be nec while setTimeout on fixed interval..
-    var start = performance.now();
-    var end;
-    
-    setInterval(() => {
-        end = performance.now();
-        updateBall( (end - start) / 1000, physicsSim.objects);
-        start = end;
-    }, 1000 / physicsSim.maxFps );
+  constructor({width, height, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  {
+    super(x, y, mass, vx, vy, ax, ay, elasticity, color);
+    this.width = width || 5;
+    this.height = height || 5;
+    PhysicsSim.objects.push(this);
+  }
+  
+  
+  draw()
+  {
+    ctx.strokeStyle = this.color;
+    ctx.beginPath();
 
-});
+    // this feels like cheating maybe
+    ctx.rect(this.x, this.y, this.width, this.height);
+
+    ctx.stroke();
+  }
+  
+  setWidth( width ) { return setNumValue( width, this.width ) }
+  
+  setHeight( height ) { return setNumValue( height, this.height ) }
+  
+}
+
+function setNumValue( val, attr )
+{
+  if(isNaN( val ))
+    throw new Error(`Expected number for ${attr.constructor.name}:
+                    got ${typeof val} instead`);
+  attr = val;
+  return val;
+}
+
+
+function refresh()
+{
+  // may not be nec while setTimeout on fixed interval..
+  var start = performance.now();
+  var end;
+  setTimeout(() => {
+    end = performance.now();
+    if ( PhysicsSim.isRunning )
+      updateBall( (end - start) / 1000, PhysicsSim.objects);
+    start = end;
+    refresh();
+  }, 1000 / PhysicsSim.targetFPS );
+}
+
+function findAvg(array) {
+    var total = 0;
+    var count = 0;
+
+    jQuery.each(array, function(index, value) {
+        total += value;
+        count++;
+    });
+
+    return total / count;
+}
 
 
 function updateBall ( timePassed, objects )
-        {
-            objects.forEach(object => {
-                object.yVelocity += object.yAcceleration * timePassed;
-                object.y += object.yVelocity * timePassed;
-                object.xVelocity +=object.xAcceleration * timePassed;
-                object.x += object.xVelocity * timePassed;
-            if(object.y + object.radius >= canvas.height)
-            {
-                object.yVelocity *= -object.elasticity;
-                object.y = canvas.height - object.radius;
-            }
-            });
-            checkCollisions( objects );
-            //console.log(timePassed);
-            updateCanvas( objects );
-        }
-        
-        function checkCollisions( objects )
-        {
-          if(objects.length === 1) return;
-          for (let i = 0; i < objects.length; i++)
-          {
-            for (let j = i + 1; j < objects.length; j++)
-            {
-              const obj1 = objects[i];
-              const obj2 = objects[j];
-              if (detectCollision(obj1, obj2))
-              {
-                handleCollision(obj1, obj2);
-              }
-            }
-          }
-        }
-        
-        function updateCanvas( objects )
-        {
-          
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            objects.forEach(object => {
-              object.draw();
-            });
-            }
-        
-        function detectCollision(obj1, obj2)
-        {
-          const distance = Math.sqrt(Math.pow(obj2.x - obj1.x, 2) + Math.pow(obj2.y - obj1.y, 2));
-          if (distance <= obj1.radius + obj2.radius)
-          {
-            obj1.color = "#0000FF";
-            obj2.color = "#0000FF";
-            return true;
-          }
-          return false;
-        }
+{
+  lastFrames[ frameCounter % 10 ] = 1 / timePassed;
+  if(frameCounter % 10 === 9)
+    $('#fps-counter').html( findAvg(lastFrames) );
+  objects.forEach(object => {
+      object.vy += object.ay * timePassed;
+      object.y += object.vy * timePassed;
+      object.vx +=object.ax * timePassed;
+      object.x += object.vx * timePassed;
+  
+  /*
+  if(object.y + object.radius  >= canvas.height)
+  {
+      object.vy *= -object.elasticity;
+      object.y = canvas.height - object.r;
+  } */
+  });
+  checkCollisions( objects );
+  //console.log(timePassed);
+  updateCanvas( objects );
+}
 
-        
-        function handleCollision(obj1, obj2) 
-        {
-          
-        }
+function checkCollisions( objects )
+{
+  if(objects.length === 1) return;
+  for (let i = 0; i < objects.length; i++)
+  {
+    for (let j = i + 1; j < objects.length; j++)
+    {
+      const obj1 = objects[i];
+      const obj2 = objects[j];
+      if (detectCollision(obj1, obj2))
+      {
+        handleCollision(obj1, obj2);
+      }
+    }
+  }
+}
+
+function updateCanvas( objects )
+{
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  objects.forEach(object => {
+    object.draw();
+  });
+  frameCounter++;
+}
+
+function detectCollision(obj1, obj2)
+{
+  const distance = Math.sqrt(Math.pow(obj2.x - obj1.x, 2) + Math.pow(obj2.y - obj1.y, 2));
+  if (distance <= obj1.radius + obj2.radius)
+  {
+    obj1.color = "#0000FF";
+    obj2.color = "#0000FF";
+    return true;
+  }
+  return false;
+}
+
+function handleCollision(obj1, obj2) 
+{
+  
+}
+
+
+$( document ).ready(function()
+{
+  refresh();
+});

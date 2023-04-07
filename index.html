@@ -24,15 +24,12 @@
           border: 2px solid dodgerBlue;
         }
         
-        #mylog
+        #fps-wrapper
         {
           position: absolute;
+          display: inline;
           left: 0;
           top: 0;
-          height: 50%;
-          overflow-y: scroll;
-          border: 2px solid black;
-          width: 30%;
         }
     </style>
     <script src="physics.js"></script>
@@ -49,52 +46,32 @@
       radius: 50,
       
     });
+    
     var ball2 = new Ball({
       radius: 10,
       x: 100,
       y: 50,
-      color: "#FF00FF"
+      color: "#FF00FF",
+      ay: 2000,
+      elasticity: 1.0
     });
-    var ball3 = new Ball({
-      radius: 10,
+    
+    var rect3 = new Rect({
+      width: 10,
       x: 150,
       y: 50,
-      yVelocity: -50,
-      yAcceleration: 98,
+      vy: -50,
+      ay: 98,
       color: "#FF0000"
     });
     
     // const g = {direction: 0, magnitude: 9.8};
     var canvas;
     var ctx;
+    PhysicsSim.targetFPS = 60;
+    
         $( document ).ready(function()
         {
-              var baseLogFunction = console.log;
-          console.log = function(){
-              baseLogFunction.apply(console, arguments);
-      
-              var args = Array.prototype.slice.call(arguments);
-              for(var i=0;i<args.length;i++){
-                  var node = createLogNode(args[i]);
-                  document.querySelector("#mylog").appendChild(node);
-              }
-      
-          }
-      
-          function createLogNode(message){
-              var node = document.createElement("div");
-              var textNode = document.createTextNode(message);
-              node.appendChild(textNode);
-              return node;
-          }
-      
-          window.onerror = function(message, url, linenumber) {
-              console.log("JavaScript error: " + message + " on line " +
-                  linenumber + " for " + url);
-          }
-          
-      console.log("test");
-      console.log("test");
       //console.log("the error below is intentional to test error handling");
       //throw new Error("Test Error");
     
@@ -112,7 +89,6 @@
                 canvas.width = dimensions.width;
                 canvas.height = dimensions.height;
                 ctx = canvas.getContext("2d");
-                updateCanvas( objects );
               }
               
             // adapted from: https://www.npmjs.com/package/intrinsic-scale
@@ -144,10 +120,13 @@
                 y: (containerHeight - targetHeight) / 2
               };
             }
+          
+          
         });
     </script>
 </head>
 <body>
+  <span id="fps-wrapper">FPS: <span id="fps-counter"></span></span>
     <canvas id="main-canvas">
     </canvas>
     <div id="mylog"></div>
