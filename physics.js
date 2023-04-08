@@ -21,6 +21,7 @@ class PhysicalObject
         this.ay = ay || 9.8;
         this.elasticity = elasticity || 0.5;
         this.color = color || "#000000";
+        PhysicsSim.objects.push(this);
     }
   
   setX( x ) { return setNumValue( x, this.x ) }
@@ -41,7 +42,6 @@ class Ball extends PhysicalObject
   {
     super(x, y, mass, vx, vy, ax, ay, elasticity, color);
     this.radius = radius || 5;
-    PhysicsSim.objects.push(this);
   }
   
   draw()
@@ -56,32 +56,140 @@ class Ball extends PhysicalObject
   
 }
 
-class Rect extends PhysicalObject
+class Polygon extends PhysicalObject
 {
-  constructor({width, height, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  constructor({vertices, x, y, mass, vx, vy, ax, ay, elasticity, color})
   {
     super(x, y, mass, vx, vy, ax, ay, elasticity, color);
-    this.width = width || 5;
-    this.height = height || 5;
-    PhysicsSim.objects.push(this);
+    this.vertices = vertices || [[-5.0, -5.0], [-5.0, 5.0], [5.0, 5.0], [5.0, -5.0]];
   }
-  
   
   draw()
   {
     ctx.strokeStyle = this.color;
     ctx.beginPath();
-
-    // this feels like cheating maybe
-    ctx.rect(this.x, this.y, this.width, this.height);
-
+    //ctx.moveTo(this.x, this.y);
+    this.vertices.forEach( vertex => ctx.lineTo(vertex[0] + this.x, vertex[1] + this.y));
+    ctx.closePath();
     ctx.stroke();
   }
   
-  setWidth( width ) { return setNumValue( width, this.width ) }
+  setVertices ( vertices )
+  {
+    if(!isValidPolygon( vertices ))
+      throw new Error("Given vertices must be in array format [ [x, y], ... [x, y] ]");
+    this.vertices = vertices;
+    return vertices;
+  }
   
-  setHeight( height ) { return setNumValue( height, this.height ) }
   
+  // given an existing vertex point, replaces it with new vertex point
+  // replaceVertex ( [x, y], [x, y] )
+  // returns new vertex
+  replaceVertex ( oldVertex, newVertex )
+  {
+    if(!(oldVertex in this.vertices))
+    {
+      console.warn("old vertex not found in polygon.. adding new vertex to end");
+      this.addVertex( newVertex );
+    }
+    if(!isValidCoordPair(newVertex))
+      throw new Error("Given vertex points must be in [x, y] format!");
+    this.vertices[this.vertices.findIndex(oldVertex)] = newVertex;
+    return newVertex;
+  }
+  
+  // addVertex( [ x, y ], pos )
+  // default pos value places vertex at end of vertices array
+  // returns vertex
+  addVertex (vertex, pos)
+  {
+    if(!isValidCoordPair(vertex))
+      throw new Error("Given vertex points must be in [x, y] format!");
+    this.vertices.splice(pos || this.vertices.length, 0, vertex);
+    return vertex;
+  }
+  
+}
+
+
+class RegularPolygon extends Polygon
+{
+  constructor({numSides = 6, radius = 10, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  {
+    super({vertices: regularPolygonVertices( numSides, radius ), x, y, mass,
+    vx, vy, ax, ay, elasticity, color});
+    this.radius = radius;
+    this.numSides = numSides;
+
+  }
+  
+  setSize( radius )
+  {
+    this.setVertices( regularPolygonVertices( this.numSides, radius ) );
+  }
+  
+}
+
+
+
+class Rect extends Polygon
+{
+  constructor({width = 5, height = 5, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  {
+    super({vertices: [[-width / 2, -height / 2], [-width / 2, height / 2],
+    [width / 2, height / 2], [width / 2, -height / 2]], x, y, mass,
+    vx, vy, ax, ay, elasticity, color});
+    this.width = width;
+    this.height = height;
+
+  }
+  
+  setSize( width, height )
+  {
+    this.setVertices( [[-width / 2, -height / 2], [-width / 2, height / 2],
+    [width / 2, height / 2], [width / 2, -height / 2]] );
+  }
+  
+  setWidth( width )
+  {
+    this.setSize( width, this.height );
+    return width;
+  }
+  
+  setHeight ( height )
+  {
+    this.setSize( this.width, height );
+    return height;
+  }
+  
+}
+
+function regularPolygonVertices ( numSides, radius )
+{
+  let vertices = [];
+  let angle = 2 * Math.PI / numSides;
+
+  for (let i = 0; i < numSides; i++)
+  {
+    vertices.push([radius * Math.cos(i * angle), radius * Math.sin(i * angle)]);
+  }
+  console.log(vertices);
+  return vertices;
+}
+
+function isValidPolygon ( vertices )
+{
+  return Array.isArray( vertices ) &&
+  vertices.every(e => { return isValidCoordPair(e) });
+}
+
+// unfriendly towards non 2d coords
+function isValidCoordPair ( coords )
+{
+  return Array.isArray(coords) &&
+  coords.length === 2 &&
+  coords.every(e => {return typeof e === 'number'});
 }
 
 function setNumValue( val, attr )
@@ -102,7 +210,7 @@ function refresh()
   setTimeout(() => {
     end = performance.now();
     if ( PhysicsSim.isRunning )
-      updateBall( (end - start) / 1000, PhysicsSim.objects);
+      updateObjects( (end - start) / 1000, PhysicsSim.objects);
     start = end;
     refresh();
   }, 1000 / PhysicsSim.targetFPS );
@@ -121,7 +229,7 @@ function findAvg(array) {
 }
 
 
-function updateBall ( timePassed, objects )
+function updateObjects ( timePassed, objects )
 {
   lastFrames[ frameCounter % 10 ] = 1 / timePassed;
   if(frameCounter % 10 === 9)
@@ -139,8 +247,7 @@ function updateBall ( timePassed, objects )
       object.y = canvas.height - object.r;
   } */
   });
-  checkCollisions( objects );
-  //console.log(timePassed);
+  // checkCollisions( objects );
   updateCanvas( objects );
 }
 

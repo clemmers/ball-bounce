@@ -52,11 +52,12 @@
       x: 100,
       y: 50,
       color: "#FF00FF",
-      ay: 2000,
+      ay: 98,
       elasticity: 1.0
     });
     
-    var rect3 = new Rect({
+    
+    var rect = new Rect({
       width: 10,
       x: 150,
       y: 50,
@@ -64,6 +65,28 @@
       ay: 98,
       color: "#FF0000"
     });
+    
+    
+    
+    var hexagon = new RegularPolygon({
+      numSides: 6,
+      radius: 10,
+      x: 100,
+      y: 50,
+      color: "#006600",
+      ay: 9.8
+    });
+    
+    
+    
+    var dip = new Polygon({
+      vertices: regularPolygonVertices(6,10),
+      x: 200,
+      y: 50,
+      color: "#006600",
+      ay: 9.8
+    });
+    
     
     // const g = {direction: 0, magnitude: 9.8};
     var canvas;
