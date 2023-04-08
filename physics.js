@@ -126,7 +126,19 @@ class RegularPolygon extends Polygon
   
   setSize( radius )
   {
-    this.setVertices( regularPolygonVertices( this.numSides, radius ) );
+    this.setShape( this.numSides, radius );
+  }
+  
+  setNumSides( numSides )
+  {
+    this.setShape( numSides, this.radius );
+  }
+  
+  setShape( numSides, radius )
+  {
+    this.setVertices( regularPolygonVertices( numSides, radius ));
+    this.radius = radius;
+    this.numSides = numSides;
   }
   
 }
@@ -149,6 +161,8 @@ class Rect extends Polygon
   {
     this.setVertices( [[-width / 2, -height / 2], [-width / 2, height / 2],
     [width / 2, height / 2], [width / 2, -height / 2]] );
+    this.width = width;
+    this.height = height;
   }
   
   setWidth( width )

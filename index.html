@@ -22,6 +22,8 @@
         canvas
         {
           border: 2px solid dodgerBlue;
+          height: 80%;
+          width: 80%;
         }
         
         #fps-wrapper
@@ -42,52 +44,6 @@
     
     
     
-    var ball = new Ball({
-      radius: 50,
-      
-    });
-    
-    var ball2 = new Ball({
-      radius: 10,
-      x: 100,
-      y: 50,
-      color: "#FF00FF",
-      ay: 98,
-      elasticity: 1.0
-    });
-    
-    
-    var rect = new Rect({
-      width: 10,
-      x: 150,
-      y: 50,
-      vy: -50,
-      ay: 98,
-      color: "#FF0000"
-    });
-    
-    
-    
-    var hexagon = new RegularPolygon({
-      numSides: 6,
-      radius: 10,
-      x: 100,
-      y: 50,
-      color: "#006600",
-      ay: 9.8
-    });
-    
-    
-    
-    var dip = new Polygon({
-      vertices: regularPolygonVertices(6,10),
-      x: 200,
-      y: 50,
-      color: "#006600",
-      ay: 9.8
-    });
-    
-    
     // const g = {direction: 0, magnitude: 9.8};
     var canvas;
     var ctx;
@@ -99,6 +55,8 @@
       //throw new Error("Test Error");
     
               canvas = document.getElementById("main-canvas");
+              ctx = canvas.getContext("2d");
+              /*
               render();
               function render()
               {
@@ -116,7 +74,7 @@
               
             // adapted from: https://www.npmjs.com/package/intrinsic-scale
             function getObjectFitSize(
-              contains /* true = contain, false = cover */,
+              contains /* true = contain, false = cover * /,
               containerWidth,
               containerHeight,
               width,
@@ -143,8 +101,54 @@
                 y: (containerHeight - targetHeight) / 2
               };
             }
-          
-          
+          */
+          var ball = new Ball({
+      radius: 50,
+      
+    });
+    
+    var ball2 = new Ball({
+      radius: 10,
+      x: 100,
+      y: canvas.height / 2,
+      color: "#FF00FF",
+      ay: 98,
+      elasticity: 1.0
+    });
+    
+    
+    var rect = new Rect({
+      width: 10,
+      x: 150,
+      y: canvas.height / 2,
+      vy: -50,
+      ay: 98,
+      color: "#FF0000"
+    });
+    
+    
+    
+    var hexagon = new RegularPolygon({
+      numSides: 1,
+      radius: 30,
+      x: 100,
+      y: canvas.height / 2,
+      color: "#006600",
+      ay: -2,
+    });
+    
+    
+    
+    var dip = new Polygon({
+      vertices: [[-10.0, -5.0], [-5.0, 5.0], [5.0, 5.0], [10.0, -5.0]],
+      x: 200,
+      y: 50,
+      color: "#006600",
+      ay: 9.8
+    });
+    setInterval(() => {
+      hexagon.setNumSides(hexagon.numSides + 1);
+    }, 100);
         });
     </script>
 </head>
