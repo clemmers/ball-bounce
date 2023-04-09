@@ -126,6 +126,8 @@
       {
         $('#changeFPS').show();
         sim.isStatic = true;
+        findTargetfpsOrSomethingIAmTired();
+        
       }
       else
       {
@@ -135,9 +137,12 @@
       }
     });
     
-    $('#targetFPS').on('input', function() {
+    $('#targetFPS').on('input', findTargetfpsOrSomethingIAmTired);
+    
+    function findTargetfpsOrSomethingIAmTired()
+    {
       sim.targetFPS = parseInt($('#targetFPS').val()) || Infinity;
-    });
+    }
 
     let numPoints = 4;
     $("#addPointButton").click(function() {

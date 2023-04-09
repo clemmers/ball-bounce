@@ -50,7 +50,7 @@ class PhysicsSim
     setTimeout(() => {
       end = performance.now();
       if ( this.isRunning )
-        this.updateObjects( this.isStatic ? this.timeBetweenUpdate : ((end - start) / 1000));
+        this.updateObjects( (end - start) / 1000 );
       start = end;
       this.run();
     }, 1000 / this.targetFPS );
@@ -58,11 +58,9 @@ class PhysicsSim
   
   updateObjects( timePassed )
   {
-    //this.lastFrames[ this.frameCounter % 10 ] = 1 / timePassed;
-    //if(this.frameCounter % 10 === 9)
-    //  $('#fps-counter').html( findAvg( this.lastFrames ) );
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillText(`FPS: ${1 / timePassed}`, 0, 10);
+    timePassed = this.isStatic ? this.timeBetweenUpdate : timePassed;
     this.objects.forEach(object => {
         object.vy += object.ay * timePassed;
         object.y += object.vy * timePassed;
