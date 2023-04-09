@@ -1,12 +1,4 @@
 
-/*
-const PhysicsSim = {
-    targetFPS: 60,
-    objects : [],
-    isRunning : true
-}
-*/
-
 class PhysicsSim
 {
   constructor ( canvas, targetFPS = 60, showFPS = true )
@@ -21,6 +13,8 @@ class PhysicsSim
     this.frameCounter = 0;
     this.showFPS = showFPS;
     this.run();
+    this.isStatic = false;
+    this.timeBetweenUpdate = 0.01;
     
   }
   
@@ -56,7 +50,7 @@ class PhysicsSim
     setTimeout(() => {
       end = performance.now();
       if ( this.isRunning )
-        this.updateObjects( (end - start) / 1000);
+        this.updateObjects( this.isStatic ? this.timeBetweenUpdate : ((end - start) / 1000));
       start = end;
       this.run();
     }, 1000 / this.targetFPS );
@@ -84,7 +78,6 @@ class PhysicsSim
     } */
     });
     
-    console.log(this.objects);
     // checkCollisions( objects );
     
     // update canvas
@@ -203,29 +196,29 @@ class Polygon extends PhysicalObject
 
 class RegularPolygon extends Polygon
 {
-  constructor({numSides = 6, radius = 10, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  constructor({numSides = 6, circumradius = 10, x, y, mass, vx, vy, ax, ay, elasticity, color})
   {
-    super({vertices: regularPolygonVertices( numSides, radius ), x, y, mass,
+    super({vertices: regularPolygonVertices( numSides, circumradius ), x, y, mass,
     vx, vy, ax, ay, elasticity, color});
-    this.radius = radius;
+    this.circumradius = circumradius;
     this.numSides = numSides;
 
   }
   
-  setSize( radius )
+  setSize( circumradius )
   {
-    this.setShape( this.numSides, radius );
+    this.setShape( this.numSides, circumradius );
   }
   
   setNumSides( numSides )
   {
-    this.setShape( numSides, this.radius );
+    this.setShape( numSides, this.circumradius );
   }
   
-  setShape( numSides, radius )
+  setShape( numSides, circumradius )
   {
-    this.setVertices( regularPolygonVertices( numSides, radius ));
-    this.radius = radius;
+    this.setVertices( regularPolygonVertices( numSides, circumradius ));
+    this.circumradius = circumradius;
     this.numSides = numSides;
   }
   
@@ -267,14 +260,14 @@ class Rect extends Polygon
   
 }
 
-function regularPolygonVertices ( numSides, radius )
+function regularPolygonVertices ( numSides, circumradius )
 {
   let vertices = [];
   let angle = 2 * Math.PI / numSides;
 
   for (let i = 0; i < numSides; i++)
   {
-    vertices.push([radius * Math.cos(i * angle), radius * Math.sin(i * angle)]);
+    vertices.push([circumradius * Math.cos(i * angle), circumradius * Math.sin(i * angle)]);
   }
   return vertices;
 }
@@ -302,57 +295,6 @@ function setNumValue( val, attr )
   return val;
 }
 
-/*
-
-function refresh()
-{
-  // may not be nec while setTimeout on fixed interval..
-  var start = performance.now();
-  var end;
-  setTimeout(() => {
-    end = performance.now();
-    if ( PhysicsSim.isRunning )
-      updateObjects( (end - start) / 1000, PhysicsSim.objects);
-    start = end;
-    refresh();
-  }, 1000 / PhysicsSim.targetFPS );
-}
-
-*/
-function findAvg(array) {
-    var total = 0;
-    var count = 0;
-
-    jQuery.each(array, function(index, value) {
-        total += value;
-        count++;
-    });
-
-    return total / count;
-}
-
-/*
-
-
-function updateObjects ( timePassed, objects )
-{
-  lastFrames[ frameCounter % 10 ] = 1 / timePassed;
-  if(frameCounter % 10 === 9)
-    $('#fps-counter').html( findAvg(lastFrames) );
-  objects.forEach(object => {
-      object.vy += object.ay * timePassed;
-      object.y += object.vy * timePassed;
-      object.vx +=object.ax * timePassed;
-      object.x += object.vx * timePassed;
-  
-
-  });
-  // checkCollisions( objects );
-  updateCanvas( objects );
-}
-*/
-
-
 function checkCollisions( objects )
 {
   if(objects.length === 1) return;
@@ -369,17 +311,6 @@ function checkCollisions( objects )
     }
   }
 }
-
-/*
-function updateCanvas( objects )
-{
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  objects.forEach(object => {
-    object.draw();
-  });
-  frameCounter++;
-}
-*/
 
 function detectCollision(obj1, obj2)
 {

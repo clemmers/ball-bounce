@@ -16,7 +16,8 @@
         body
         {
           display: flex;
-          justify-content: center;
+          justify-content: space-evenly;
+          flex-direction: column;
           align-items: center;
         }
         canvas
@@ -26,132 +27,278 @@
           width: 80%;
         }
         
+        input
+        {
+          width: 50px;
+        }
+        
+        #buttons-wrapper
+        {
+          display: flex;
+          flex-direction: row;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+        
+        h1, h2, h3, h4, h5, h6 { display: inline; }
+        
     </style>
     <script src="physics.js"></script>
     <script>
-    
-    
-    var floor = {
+      $( document ).ready(function()
+      {
+        var sim = new PhysicsSim( document.getElementById("main-canvas") )
+        sim.canvas.width  = window.innerWidth;
+        sim.canvas.height = window.innerHeight;
+        sim.targetFPS = Infinity;
+        //sim.isRunning = false;
+        var ball = sim.newBall({
+          radius: 50,
+        });
+        
+        var ball2 = sim.newBall({
+          radius: 10,
+          x: 100,
+          y: sim.canvas.height / 2,
+          color: "#FF00FF",
+          ay: 98,
+          elasticity: 1.0
+        });
+        
+        
+        var rect = sim.newRect({
+          width: 10,
+          x: 150,
+          y: sim.canvas.height / 2,
+          vy: -50,
+          ay: 98,
+          color: "#FF0000"
+        });
+        
+        
+        
+        var hexagon = sim.newRegularPolygon({
+          numSides: 1,
+          circumradius: 30,
+          x: 100,
+          y: sim.canvas.height / 2,
+          color: "#006600",
+          ay: -2,
+        });
+        
+        
+        
+        var dip = sim.newPolygon({
+          vertices: [[-10.0, -5.0], [-5.0, 5.0], [5.0, 5.0], [10.0, -5.0]],
+          x: 200,
+          y: 50,
+          color: "#006600",
+          ay: 9.8
+        });
+        
+        setInterval(() => {
+          hexagon.setNumSides(hexagon.numSides + 1);
+        }, 1000);
       
-    };
-    
-    
-    
-    // const g = {direction: 0, magnitude: 9.8};
-    
-    //var canvas;
-    //var ctx;
-    //PhysicsSim.targetFPS = 60;
-        $( document ).ready(function()
-        {
-      //console.log("the error below is intentional to test error handling");
-      //throw new Error("Test Error");
-    
-              //canvas = document.getElementById("main-canvas");
-              //ctx = canvas.getContext("2d");
-              /*
-              render();
-              function render()
-              {
-                const dimensions = getObjectFitSize(
-                  true,
-                  canvas.clientWidth,
-                  canvas.clientHeight,
-                  canvas.width,
-                  canvas.height
-                );
-                canvas.width = dimensions.width;
-                canvas.height = dimensions.height;
-                ctx = canvas.getContext("2d");
-              }
-              
-            // adapted from: https://www.npmjs.com/package/intrinsic-scale
-            function getObjectFitSize(
-              contains /* true = contain, false = cover * /,
-              containerWidth,
-              containerHeight,
-              width,
-              height
-            ) {
-              var doRatio = width / height;
-              var cRatio = containerWidth / containerHeight;
-              var targetWidth = 0;
-              var targetHeight = 0;
-              var test = contains ? doRatio > cRatio : doRatio < cRatio;
-            
-              if (test) {
-                targetWidth = containerWidth;
-                targetHeight = targetWidth / doRatio;
-              } else {
-                targetHeight = containerHeight;
-                targetWidth = targetHeight * doRatio;
-              }
-            
-              return {
-                width: targetWidth,
-                height: targetHeight,
-                x: (containerWidth - targetWidth) / 2,
-                y: (containerHeight - targetHeight) / 2
-              };
-            }
-          */
-    var sim = new PhysicsSim( document.getElementById("main-canvas") )
-    sim.canvas.width  = window.innerWidth;
-    sim.canvas.height = window.innerHeight;
-    sim.targetFPS = Infinity;
-  
-    var ball = sim.newBall({
-      radius: 50,
+      $("#shapeSelect").change(function() {
+          const selectedShape = $(this).val();
+          $("#polygonInputs, #regularPolygonInputs, #ballInputs, #rectInputs, #normalInputs").hide();
+          switch (selectedShape)
+          {
+            case "polygon":
+              $("#polygonInputs").show();
+            break;
+            case "regularPolygon":
+              $("#regularPolygonInputs").show();
+              break;
+            case "ball":
+              $("#ballInputs").show();
+              break;
+            case "rect":
+              $("#rectInputs").show();
+              break;
+          }
+      $("#normalInputs").show();
     });
     
-    var ball2 = sim.newBall({
-      radius: 10,
-      x: 100,
-      y: sim.canvas.height / 2,
-      color: "#FF00FF",
-      ay: 98,
-      elasticity: 1.0
+    $('#simType').change(function() {
+      if( $(this).val() === "static" )
+      {
+        $('#changeFPS').show();
+        sim.isStatic = true;
+      }
+      else
+      {
+        $('#changeFPS').hide();
+        sim.targetFPS = Infinity;
+        sim.isStatic = false;
+      }
     });
     
-    
-    var rect = sim.newRect({
-      width: 10,
-      x: 150,
-      y: sim.canvas.height / 2,
-      vy: -50,
-      ay: 98,
-      color: "#FF0000"
+    $('#targetFPS').on('input', function() {
+      sim.targetFPS = parseInt($('#targetFPS').val()) || Infinity;
+    });
+
+    let numPoints = 4;
+    $("#addPointButton").click(function() {
+      const newPointHTML = `
+        <label for="x${numPoints}Input">point ${numPoints} x:</label>
+        <input type="number" class = "xcoord" id="x${numPoints}Input" placeholder="0">
+        <label for="y${numPoints}Input">point ${numPoints} y:</label>
+        <input type="number" class = "ycoord" id="y${numPoints}Input" placeholder="0">
+      `;
+      $("#pointsContainer").append(newPointHTML);
+      numPoints++;
     });
     
-    
-    
-    var hexagon = sim.newRegularPolygon({
-      numSides: 1,
-      radius: 30,
-      x: 100,
-      y: sim.canvas.height / 2,
-      color: "#006600",
-      ay: -2,
+    $("#createShape").click(() => {
+      const commonAttrs = {
+        x: parseFloat($('#xInput').val()) || 0,
+        y: parseFloat($('#yInput').val()) || 0,
+        mass: parseFloat($('#massInput').val()) || 100,
+        vx: parseFloat($('#vxInput').val()) || 0,
+        vy: parseFloat($('#vyInput').val()) || 0,
+        ax: parseFloat($('#axInput').val()) || 0,
+        ay: parseFloat($('#ayInput').val()) || 100,
+        elasticity: parseFloat($('#elasticityInput').val()) || 0.8,
+        color: $('#colorInput').val() || "#000000"
+      };
+      console.log(typeof $('#xInput').val());
+      switch ($("#shapeSelect").val()) {
+        case "polygon":
+          sim.newPolygon(Object.assign({}, commonAttrs, {
+            vertices: inputToVertices(),
+          }));
+          break;
+        case "regularPolygon":
+          sim.newRegularPolygon(Object.assign({}, commonAttrs, {
+            numSides: parseFloat($('#numSidesInput').val()) || 6,
+            circumradius: parseFloat($('#circumradiusInput').val()) || 10,
+          }));
+          break;
+        case "ball":
+          sim.newBall(Object.assign({}, commonAttrs, {
+            radius: parseFloat($('#radiusInput').val()) || 10,
+          }));
+          break;
+        case "rect":
+          sim.newRect(Object.assign({}, commonAttrs, {
+            width: parseFloat($('#widthInput').val()) || 10,
+            height: parseFloat($('#heightInput').val()) || 10,
+          }));
+          break;
+      }
     });
     
+    function inputToVertices()
+    {
+      let vertices = [];
+      let xcoords = $('.xcoord').map(function() {
+        return parseFloat($(this).val());
+      }).get();
+      let ycoords = $('.ycoord').map(function() {
+        return parseFloat($(this).val());
+      }).get();
+      for(let i = 0; i < xcoords.length; i++)
+      {
+        vertices.push([xcoords[i] || 0, ycoords[i] || 0]);
+      }
+      return vertices;
+    }
     
     
-    var dip = sim.newPolygon({
-      vertices: [[-10.0, -5.0], [-5.0, 5.0], [5.0, 5.0], [10.0, -5.0]],
-      x: 200,
-      y: 50,
-      color: "#006600",
-      ay: 9.8
-    });
-    
-    setInterval(() => {
-      hexagon.setNumSides(hexagon.numSides + 1);
-    }, 1000);
-    
+    $('#simulation-button').click(function() {
+      sim.isRunning = !sim.isRunning;
+      $(this).text(sim.isRunning ? "pause simulation" : "resume simulation");
   });
+    
+    });
     </script>
 </head>
 <body>
+  <div id="top-buttons-wrapper">
+    <button id="simulation-button">pause simulation</button>
+    <select id="simType">
+      <option value="dynamic">dynamic (default)</option>
+      <option value="static">static</option>
+    </select>
+    <span id = "changeFPS" style="display:none">
+      <label for="targetFPS">target fps:</label>
+      <input type="number" id="targetFPS" min="1" placeholder="MAX">
+    </span>
+  </div>
+  
+  <div id="buttons-wrapper">
+    <select id="shapeSelect">
+      <option value="none" selected disabled hidden>select a shape</option>
+      <option value="polygon">polygon</option>
+      <option value="regularPolygon">regular polygon</option>
+      <option value="ball">ball</option>
+      <option value="rect">rectangle</option>
+    </select>
+
+    <span id="polygonInputs" style="display:none">
+      <span id="pointsContainer">
+        <label for="x1Input">point 1 x:</label>
+        <input type="number" class = "xcoord" id="x1Input" placeholder="0">
+        <label for="y1Input">point 1 y:</label>
+        <input type="number" class = "ycoord" id="y1Input" placeholder="0">
+        <label for="x2Input">point 2 x:</label>
+        <input type="number" class = "xcoord" id="x2Input" placeholder="0">
+        <label for="y2Input">point 2 y:</label>
+        <input type="number" class = "ycoord" id="y2Input" placeholder="0">
+        <label for="x3Input">point 3 x:</label>
+        <input type="number" class = "xcoord" id="x3Input" placeholder="0">
+        <label for="y3Input">point 3 y:</label>
+        <input type="number" class = "ycoord" id="y3Input" placeholder="0">
+        
+      </span>
+      
+      <button id="addPointButton">Add Point</button><br>
+      
+    </span>
+
+    <span id="regularPolygonInputs" style="display:none">
+      <label for="numSidesInput"># sides:</label>
+      <input type="number" id="numSidesInput" placeholder="6">
+      <label for="circumradiusInput">circumradius:</label>
+      <input type="number" id="circumradiusInput" placeholder="10">
+    </span>
+
+    <span id="ballInputs" style="display:none">
+      <label for="radiusInput">radius:</label>
+      <input type="number" id="radiusInput" placeholder="10">
+    </span>
+
+    <span id="rectInputs" style="display:none">
+      <label for="heightInput">height:</label>
+      <input type="number" id="lengthInput" placeholder="10">
+      <label for="widthInput">width:</label>
+      <input type="number" id="widthInput" placeholder="10">
+    </span>
+    
+    <span id="normalInputs" style="display:none">
+    <label for="xInput">x:</label>
+    <input type="number" id="xInput" placeholder="0">
+    <label for="yInput">y:</label>
+    <input type="number" id="yInput" placeholder="0">
+    <label for="massInput">mass:</label>
+    <input type="number" id="massInput" placeholder="100">
+    <label for="vxInput">x-velocity:</label>
+    <input type="number" id="vxInput" placeholder="0">
+    <label for="vyInput">y-velocity:</label>
+    <input type="number" id="vyInput" placeholder="0">
+    <label for="axInput">x-acceleration:</label>
+    <input type="number" id="axInput" placeholder="0">
+    <label for="ayInput">y-acceleration:</label>
+    <input type="number" id="ayInput" placeholder="100">
+    <label for="elasticityInput">elasticity:</label>
+    <input type="number" id="elasticityInput" placeholder="0.8">
+    <label for="colorInput">hex color:</label>
+    <input type="text" id="colorInput" placeholder="#000000">
+    <button id="createShape">create shape</button>
+    </span>
+  </div>
     <canvas id="main-canvas">
     </canvas>
 </body>
