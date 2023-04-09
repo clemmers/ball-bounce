@@ -26,13 +26,6 @@
           width: 80%;
         }
         
-        #fps-wrapper
-        {
-          position: absolute;
-          display: inline;
-          left: 0;
-          top: 0;
-        }
     </style>
     <script src="physics.js"></script>
     <script>
@@ -45,17 +38,17 @@
     
     
     // const g = {direction: 0, magnitude: 9.8};
-    var canvas;
-    var ctx;
-    PhysicsSim.targetFPS = 60;
     
+    //var canvas;
+    //var ctx;
+    //PhysicsSim.targetFPS = 60;
         $( document ).ready(function()
         {
       //console.log("the error below is intentional to test error handling");
       //throw new Error("Test Error");
     
-              canvas = document.getElementById("main-canvas");
-              ctx = canvas.getContext("2d");
+              //canvas = document.getElementById("main-canvas");
+              //ctx = canvas.getContext("2d");
               /*
               render();
               function render()
@@ -102,25 +95,29 @@
               };
             }
           */
-          var ball = new Ball({
+    var sim = new PhysicsSim( document.getElementById("main-canvas") )
+    sim.canvas.width  = window.innerWidth;
+    sim.canvas.height = window.innerHeight;
+    sim.targetFPS = Infinity;
+  
+    var ball = sim.newBall({
       radius: 50,
-      
     });
     
-    var ball2 = new Ball({
+    var ball2 = sim.newBall({
       radius: 10,
       x: 100,
-      y: canvas.height / 2,
+      y: sim.canvas.height / 2,
       color: "#FF00FF",
       ay: 98,
       elasticity: 1.0
     });
     
     
-    var rect = new Rect({
+    var rect = sim.newRect({
       width: 10,
       x: 150,
-      y: canvas.height / 2,
+      y: sim.canvas.height / 2,
       vy: -50,
       ay: 98,
       color: "#FF0000"
@@ -128,34 +125,34 @@
     
     
     
-    var hexagon = new RegularPolygon({
+    var hexagon = sim.newRegularPolygon({
       numSides: 1,
       radius: 30,
       x: 100,
-      y: canvas.height / 2,
+      y: sim.canvas.height / 2,
       color: "#006600",
       ay: -2,
     });
     
     
     
-    var dip = new Polygon({
+    var dip = sim.newPolygon({
       vertices: [[-10.0, -5.0], [-5.0, 5.0], [5.0, 5.0], [10.0, -5.0]],
       x: 200,
       y: 50,
       color: "#006600",
       ay: 9.8
     });
+    
     setInterval(() => {
       hexagon.setNumSides(hexagon.numSides + 1);
-    }, 100);
-        });
+    }, 1000);
+    
+  });
     </script>
 </head>
 <body>
-  <span id="fps-wrapper">FPS: <span id="fps-counter"></span></span>
     <canvas id="main-canvas">
     </canvas>
-    <div id="mylog"></div>
 </body>
 </html>

@@ -1,10 +1,99 @@
 
-var lastFrames = [];
-var frameCounter = 0;
+/*
 const PhysicsSim = {
     targetFPS: 60,
     objects : [],
     isRunning : true
+}
+*/
+
+class PhysicsSim
+{
+  constructor ( canvas, targetFPS = 60, showFPS = true )
+  {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
+    this.ctx.font = "5px Arial";
+    this.targetFPS = targetFPS;
+    this.objects = [];
+    this.isRunning = true;
+    this.lastFrames = [];
+    this.frameCounter = 0;
+    this.showFPS = showFPS;
+    this.run();
+    
+  }
+  
+  // returns object created
+  newBall({radius, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  {
+    return this.objects[this.objects.push(new Ball({radius, x, y, mass, vx, vy, ax, ay, elasticity, color})) - 1];
+  }
+  
+  // returns object created
+  newPolygon({vertices, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  {
+    return this.objects[this.objects.push(new Polygon({vertices, x, y, mass, vx, vy, ax, ay, elasticity, color})) - 1];
+  }
+  
+  // returns object created
+  newRect({width, height, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  {
+    return this.objects[this.objects.push(new Rect({width, height, x, y, mass, vx, vy, ax, ay, elasticity, color})) - 1];
+  }
+  
+  // returns object created
+  newRegularPolygon({numSides, radius, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  {
+    return this.objects[this.objects.push(new RegularPolygon({numSides, radius, x, y, mass, vx, vy, ax, ay, elasticity, color})) - 1];
+  }
+  
+  run()
+  {
+    // may not be nec while setTimeout on fixed interval..
+    var start = performance.now();
+    var end;
+    setTimeout(() => {
+      end = performance.now();
+      if ( this.isRunning )
+        this.updateObjects( (end - start) / 1000);
+      start = end;
+      this.run();
+    }, 1000 / this.targetFPS );
+  }
+  
+  updateObjects( timePassed )
+  {
+    //this.lastFrames[ this.frameCounter % 10 ] = 1 / timePassed;
+    //if(this.frameCounter % 10 === 9)
+    //  $('#fps-counter').html( findAvg( this.lastFrames ) );
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillText(`FPS: ${1 / timePassed}`, 0, 10);
+    this.objects.forEach(object => {
+        object.vy += object.ay * timePassed;
+        object.y += object.vy * timePassed;
+        object.vx +=object.ax * timePassed;
+        object.x += object.vx * timePassed;
+        object.draw( this.ctx );
+    
+    /*
+    if(object.y + object.radius  >= canvas.height)
+    {
+        object.vy *= -object.elasticity;
+        object.y = canvas.height - object.r;
+    } */
+    });
+    
+    console.log(this.objects);
+    // checkCollisions( objects );
+    
+    // update canvas
+    //this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    //this.objects.forEach( object => {
+    //  object.draw( this.ctx );
+    //});
+  }
+
 }
 
 
@@ -21,7 +110,6 @@ class PhysicalObject
         this.ay = ay || 9.8;
         this.elasticity = elasticity || 0.5;
         this.color = color || "#000000";
-        PhysicsSim.objects.push(this);
     }
   
   setX( x ) { return setNumValue( x, this.x ) }
@@ -44,7 +132,7 @@ class Ball extends PhysicalObject
     this.radius = radius || 5;
   }
   
-  draw()
+  draw( ctx )
   {
     ctx.strokeStyle = this.color;
     ctx.beginPath();
@@ -64,7 +152,7 @@ class Polygon extends PhysicalObject
     this.vertices = vertices || [[-5.0, -5.0], [-5.0, 5.0], [5.0, 5.0], [5.0, -5.0]];
   }
   
-  draw()
+  draw(ctx )
   {
     ctx.strokeStyle = this.color;
     ctx.beginPath();
@@ -188,7 +276,6 @@ function regularPolygonVertices ( numSides, radius )
   {
     vertices.push([radius * Math.cos(i * angle), radius * Math.sin(i * angle)]);
   }
-  console.log(vertices);
   return vertices;
 }
 
@@ -215,6 +302,7 @@ function setNumValue( val, attr )
   return val;
 }
 
+/*
 
 function refresh()
 {
@@ -230,6 +318,7 @@ function refresh()
   }, 1000 / PhysicsSim.targetFPS );
 }
 
+*/
 function findAvg(array) {
     var total = 0;
     var count = 0;
@@ -241,6 +330,8 @@ function findAvg(array) {
 
     return total / count;
 }
+
+/*
 
 
 function updateObjects ( timePassed, objects )
@@ -254,16 +345,13 @@ function updateObjects ( timePassed, objects )
       object.vx +=object.ax * timePassed;
       object.x += object.vx * timePassed;
   
-  /*
-  if(object.y + object.radius  >= canvas.height)
-  {
-      object.vy *= -object.elasticity;
-      object.y = canvas.height - object.r;
-  } */
+
   });
   // checkCollisions( objects );
   updateCanvas( objects );
 }
+*/
+
 
 function checkCollisions( objects )
 {
@@ -282,6 +370,7 @@ function checkCollisions( objects )
   }
 }
 
+/*
 function updateCanvas( objects )
 {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -290,6 +379,7 @@ function updateCanvas( objects )
   });
   frameCounter++;
 }
+*/
 
 function detectCollision(obj1, obj2)
 {
@@ -307,9 +397,3 @@ function handleCollision(obj1, obj2)
 {
   
 }
-
-
-$( document ).ready(function()
-{
-  refresh();
-});
