@@ -37,9 +37,9 @@ class PhysicsSim
   }
   
   // returns object created
-  newRegularPolygon({numSides, radius, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  newRegularPolygon({numSides, circumradius, x, y, mass, vx, vy, ax, ay, elasticity, color})
   {
-    return this.objects[this.objects.push(new RegularPolygon({numSides, radius, x, y, mass, vx, vy, ax, ay, elasticity, color})) - 1];
+    return this.objects[this.objects.push(new RegularPolygon({numSides, circumradius, x, y, mass, vx, vy, ax, ay, elasticity, color})) - 1];
   }
   
   run()
