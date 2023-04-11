@@ -84,7 +84,6 @@
           y: sim.canvas.height / 2,
           color: "#006600",
           yAcceleration: -2,
-          angularAcceleration: 20,
         });
         
         
@@ -94,11 +93,13 @@
           x: 200,
           y: 50,
           color: "#006600",
-          yAcceleration: 9.8
+          yAcceleration: 0,
+          angularAcceleration: 1,
         });
         
         setInterval(() => {
           hexagon.setNumSides(hexagon.numSides + 1);
+          dip.resize(2);
         }, 1000);
       
       $("#shapeSelect").change(function() {

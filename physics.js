@@ -66,7 +66,7 @@ class PhysicsSim
         object.xVelocity +=object.xAcceleration * timePassed;
         object.x += object.xVelocity * timePassed;
         object.angularVelocity += object.angularAcceleration * timePassed;
-        object.rotate?.( object.angularVelocity * timePassed );
+        object.rotate?.( ( object.angularVelocity * timePassed ) % (2 * Math.PI));
         object.draw( this.ctx );
     });
     this.checkCollisions();
@@ -166,6 +166,9 @@ class Polygon extends PhysicalObject
     if(!isValidPolygon( vertices ))
       throw new Error("Given vertices must be in arryAcceleration format [ [x, y], ... [x, y] ]");
     this.vertices = vertices;
+    
+    // update manipulated vertices
+    this.setOrientation( this.angularPosition )
     return vertices;
   }
   
@@ -197,19 +200,34 @@ class Polygon extends PhysicalObject
     return vertex;
   }
   
+  
+  
+  // rotates around center point but that may not be what we want for accurate physics simulation....
   // rotates in xy plane
-  // returns amount rotated
   rotate ( theta )
   {
-    for ( let e of this.vertices )
+    let rotationMatrix = [[Math.cos(theta), -Math.sin(theta)],
+                          [Math.sin(theta),  Math.cos(theta)]];
+    for ( let i = 0; i < this.vertices.length; i++ )
     {
-      let rotationMatrix = [[Math.cos(theta), -Math.sin(theta)],
-                            [Math.sin(theta),  Math.cos(theta)]];
-      
-      e[0] = rotationMatrix[0][0] * e[0] + rotationMatrix[0][1] * e[0];
-      e[1] = rotationMatrix[1][0] * e[1] + rotationMatrix[1][1] * e[1];
+      this.vertices[i][0] = rotationMatrix[0][0] * this.vertices[i][0] + rotationMatrix[0][1] * this.vertices[i][1];
+      this.vertices[i][1] = rotationMatrix[1][0] * this.vertices[i][0] + rotationMatrix[1][1] * this.vertices[i][1];
     };
-    this.angularPosition += theta;
+    this.angularPosition = theta;
+  }
+  
+  setOrientation ( theta )
+  {
+    this.rotate( theta - this.angularPosition );
+  }
+  
+  
+  resize( scalar )
+  {
+    for ( let e of this.vertices )
+      // second for loop for compatibility with x dimensions
+      for ( let k of e )
+        e[k] *= scalar;
   }
   
 }
