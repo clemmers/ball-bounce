@@ -66,7 +66,7 @@ class PhysicsSim
         object.xVelocity +=object.xAcceleration * timePassed;
         object.x += object.xVelocity * timePassed;
         object.angularVelocity += object.angularAcceleration * timePassed;
-        object.rotateVectors( object.angularVelocity * timePassed );
+        object?.rotate ( object.angularVelocity * timePassed );
         object.draw( this.ctx );
     });
     this.checkCollisions();
@@ -199,7 +199,7 @@ class Polygon extends PhysicalObject
   
   // rotates in xy plane
   // returns amount rotated
-  rotateVectors( theta )
+  rotate ( theta )
   {
     for ( let e of this.vertices )
     {
@@ -297,14 +297,14 @@ function regularPolygonVertices ( numSides, circumradius )
 
 function isValidPolygon ( vertices )
 {
-  return ArryAcceleration.isArryAcceleration( vertices ) &&
+  return Array.isArray( vertices ) &&
   vertices.every(e => { return isValidCoordPair(e) });
 }
 
 // unfriendly towards non 2d coords
 function isValidCoordPair ( coords )
 {
-  return ArryAcceleration.isArryAcceleration(coords) &&
+  return Array.isArray(coords) &&
   coords.length === 2 &&
   coords.every(e => {return typeof e === 'number'});
 }
