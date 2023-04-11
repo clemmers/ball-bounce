@@ -210,8 +210,9 @@ class Polygon extends PhysicalObject
                           [Math.sin(theta),  Math.cos(theta)]];
     for ( let i = 0; i < this.vertices.length; i++ )
     {
-      this.vertices[i][0] = rotationMatrix[0][0] * this.vertices[i][0] + rotationMatrix[0][1] * this.vertices[i][1];
-      this.vertices[i][1] = rotationMatrix[1][0] * this.vertices[i][0] + rotationMatrix[1][1] * this.vertices[i][1];
+      let x = rotationMatrix[0][0] * this.vertices[i][0] + rotationMatrix[0][1] * this.vertices[i][1];
+      let y = rotationMatrix[1][0] * this.vertices[i][0] + rotationMatrix[1][1] * this.vertices[i][1];
+      this.vertices[i] = [x, y];
     };
     this.angularPosition = theta;
   }
