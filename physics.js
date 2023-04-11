@@ -66,7 +66,7 @@ class PhysicsSim
         object.xVelocity +=object.xAcceleration * timePassed;
         object.x += object.xVelocity * timePassed;
         object.angularVelocity += object.angularAcceleration * timePassed;
-        object?.rotate ( object.angularVelocity * timePassed );
+        object.rotate?.( object.angularVelocity * timePassed );
         object.draw( this.ctx );
     });
     this.checkCollisions();
