@@ -61,7 +61,7 @@
           x: 100,
           y: sim.canvas.height / 2,
           color: "#FF00FF",
-          ay: 98,
+          yAcceleration: 98,
           elasticity: 1.0
         });
         
@@ -70,8 +70,8 @@
           width: 10,
           x: 150,
           y: sim.canvas.height / 2,
-          vy: -50,
-          ay: 98,
+          yVelocity: -50,
+          yAcceleration: 98,
           color: "#FF0000"
         });
         
@@ -83,7 +83,7 @@
           x: 100,
           y: sim.canvas.height / 2,
           color: "#006600",
-          ay: -2,
+          yAcceleration: -2,
         });
         
         
@@ -93,11 +93,13 @@
           x: 200,
           y: 50,
           color: "#006600",
-          ay: 9.8
+          yAcceleration: 0,
+          angularAcceleration: 20,
         });
         
         setInterval(() => {
           hexagon.setNumSides(hexagon.numSides + 1);
+          dip.resize(2);
         }, 1000);
       
       $("#shapeSelect").change(function() {
@@ -161,10 +163,10 @@
         x: parseFloat($('#xInput').val()) || 0,
         y: parseFloat($('#yInput').val()) || 0,
         mass: parseFloat($('#massInput').val()) || 100,
-        vx: parseFloat($('#vxInput').val()) || 0,
-        vy: parseFloat($('#vyInput').val()) || 0,
-        ax: parseFloat($('#axInput').val()) || 0,
-        ay: parseFloat($('#ayInput').val()) || 100,
+        xVelocity: parseFloat($('#xVelocityInput').val()) || 0,
+        yVelocity: parseFloat($('#yVelocityInput').val()) || 0,
+        xAcceleration: parseFloat($('#xAccelerationInput').val()) || 0,
+        yAcceleration: parseFloat($('#yAccelerationInput').val()) || 100,
         elasticity: parseFloat($('#elasticityInput').val()) || 0.8,
         color: $('#colorInput').val() || "#000000"
       };
@@ -289,14 +291,14 @@
     <input type="number" id="yInput" placeholder="0">
     <label for="massInput">mass:</label>
     <input type="number" id="massInput" placeholder="100">
-    <label for="vxInput">x-velocity:</label>
-    <input type="number" id="vxInput" placeholder="0">
-    <label for="vyInput">y-velocity:</label>
-    <input type="number" id="vyInput" placeholder="0">
-    <label for="axInput">x-acceleration:</label>
-    <input type="number" id="axInput" placeholder="0">
-    <label for="ayInput">y-acceleration:</label>
-    <input type="number" id="ayInput" placeholder="100">
+    <label for="xVelocityInput">x-velocity:</label>
+    <input type="number" id="xVelocityInput" placeholder="0">
+    <label for="yVelocityInput">y-velocity:</label>
+    <input type="number" id="yVelocityInput" placeholder="0">
+    <label for="xAccelerationInput">x-acceleration:</label>
+    <input type="number" id="xAccelerationInput" placeholder="0">
+    <label for="yAccelerationInput">y-acceleration:</label>
+    <input type="number" id="yAccelerationInput" placeholder="100">
     <label for="elasticityInput">elasticity:</label>
     <input type="number" id="elasticityInput" placeholder="0.8">
     <label for="colorInput">hex color:</label>

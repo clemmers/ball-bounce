@@ -9,42 +9,41 @@ class PhysicsSim
     this.targetFPS = targetFPS;
     this.objects = [];
     this.isRunning = true;
-    this.lastFrames = [];
-    this.frameCounter = 0;
     this.showFPS = showFPS;
-    this.run();
     this.isStatic = false;
-    this.timeBetweenUpdate = 0.01;
+    this.timeBetweenStaticUpdate = 0.01;
+    
+    this.run();
     
   }
   
   // returns object created
-  newBall({radius, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  newBall({radius, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})
   {
-    return this.objects[this.objects.push(new Ball({radius, x, y, mass, vx, vy, ax, ay, elasticity, color})) - 1];
+    return this.objects[this.objects.push(new Ball({radius, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})) - 1];
   }
   
   // returns object created
-  newPolygon({vertices, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  newPolygon({vertices, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})
   {
-    return this.objects[this.objects.push(new Polygon({vertices, x, y, mass, vx, vy, ax, ay, elasticity, color})) - 1];
+    return this.objects[this.objects.push(new Polygon({vertices, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})) - 1];
   }
   
   // returns object created
-  newRect({width, height, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  newRect({width, height, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})
   {
-    return this.objects[this.objects.push(new Rect({width, height, x, y, mass, vx, vy, ax, ay, elasticity, color})) - 1];
+    return this.objects[this.objects.push(new Rect({width, height, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})) - 1];
   }
   
   // returns object created
-  newRegularPolygon({numSides, circumradius, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  newRegularPolygon({numSides, circumradius, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})
   {
-    return this.objects[this.objects.push(new RegularPolygon({numSides, circumradius, x, y, mass, vx, vy, ax, ay, elasticity, color})) - 1];
+    return this.objects[this.objects.push(new RegularPolygon({numSides, circumradius, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})) - 1];
   }
   
   run()
   {
-    // may not be nec while setTimeout on fixed interval..
+    // myAcceleration not be nec while setTimeout on fixed interval..
     var start = performance.now();
     var end;
     setTimeout(() => {
@@ -59,30 +58,33 @@ class PhysicsSim
   updateObjects( timePassed )
   {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.fillText(`FPS: ${1 / timePassed}`, 0, 10);
-    timePassed = this.isStatic ? this.timeBetweenUpdate : timePassed;
+    if(this.showFPS) this.ctx.fillText(`FPS: ${1 / timePassed}`, 0, 10);
+    if(this.isStatic) timePassed = this.timeBetweenStaticUpdate;
     this.objects.forEach(object => {
-        object.vy += object.ay * timePassed;
-        object.y += object.vy * timePassed;
-        object.vx +=object.ax * timePassed;
-        object.x += object.vx * timePassed;
+        object.yVelocity += object.yAcceleration * timePassed;
+        object.y += object.yVelocity * timePassed;
+        object.xVelocity +=object.xAcceleration * timePassed;
+        object.x += object.xVelocity * timePassed;
+        object.angularVelocity += object.angularAcceleration * timePassed;
+        object.rotate?.( ( object.angularVelocity * timePassed ) % (2 * Math.PI));
         object.draw( this.ctx );
-    
-    /*
-    if(object.y + object.radius  >= canvas.height)
-    {
-        object.vy *= -object.elasticity;
-        object.y = canvas.height - object.r;
-    } */
     });
-    
-    // checkCollisions( objects );
-    
-    // update canvas
-    //this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    //this.objects.forEach( object => {
-    //  object.draw( this.ctx );
-    //});
+    this.checkCollisions();
+  }
+  
+  checkCollisions()
+  {
+    for( let i = 0; i < this.objects.length; i++ )
+    {
+      for(let j = i + 1; j < this.objects.length; j++)
+      {
+        let obj1 = this.objects[i];
+        let obj2 = this.objects[j];
+        
+        if(obj1.constructor.name === "Ball" && obj2.constructor.name === "Ball")
+          detectCollisionCircle( obj1, obj2 );
+      }
+    }
   }
 
 }
@@ -90,15 +92,18 @@ class PhysicsSim
 
 class PhysicalObject
 {
-    constructor(x, y, mass, vx, vy, ax, ay, elasticity, color)
+    constructor(x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color)
     {
         this.x = x || 0;
         this.y = y || 0;
         this.mass = mass || 100;
-        this.vx = vx || 0;
-        this.vy = vy || 0;
-        this.ax = ax || 0;
-        this.ay = ay || 9.8;
+        this.xVelocity = xVelocity || 0;
+        this.yVelocity = yVelocity || 0;
+        this.xAcceleration = xAcceleration || 0;
+        this.yAcceleration = yAcceleration || 9.8;
+        this.angularPosition = angularPosition || 0;
+        this.angularVelocity = angularVelocity || 0;
+        this.angularAcceleration = angularAcceleration || 0;
         this.elasticity = elasticity || 0.5;
         this.color = color || "#000000";
     }
@@ -106,10 +111,13 @@ class PhysicalObject
   setX( x ) { return setNumValue( x, this.x ) }
   setY( y ) { return setNumValue( y, this.y ) }
   setMass( mass ) { return setNumValue( mass, this.mass ) }
-  setVX( vx ) { return setNumValue( vx, this.vx ) }
-  setVY( vy ) { return setNumValue( vy, this.vy ) }
-  setAX( ax ) { return setNumValue( ax, this.ax ) }
-  setAY( ay ) { return setNumValue( ay, this.ay ) }
+  setXVelocity( xVelocity ) { return setNumValue( xVelocity, this.xVelocity ) }
+  setYVelocity( yVelocity ) { return setNumValue( yVelocity, this.yVelocity ) }
+  setxAcceleration( xAcceleration ) { return setNumValue( xAcceleration, this.xAcceleration ) }
+  setyAcceleration( yAcceleration ) { return setNumValue( yAcceleration, this.yAcceleration ) }
+  setAngularPosition( angularPosition ) { return setNumValue( angularPosition, this.angularPosition ) }
+  setAngularVelocity( angularVelocity ) { return setNumValue( this.angularVelocity, this.angularVelocity ) }
+  setAngularAcceleration( angularAcceleration ) { return setNumValue( angularAcceleration, this.angularAcceleration ) }
   setElasticity( elasticity ) { return setNumValue( elasticity, this.elasticity ) }
   setColor( color ) { this.color = color; return color; }
   
@@ -117,9 +125,9 @@ class PhysicalObject
 
 class Ball extends PhysicalObject
 {
-  constructor({radius, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  constructor({radius, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})
   {
-    super(x, y, mass, vx, vy, ax, ay, elasticity, color);
+    super(x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color);
     this.radius = radius || 5;
   }
   
@@ -137,13 +145,13 @@ class Ball extends PhysicalObject
 
 class Polygon extends PhysicalObject
 {
-  constructor({vertices, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  constructor({vertices, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})
   {
-    super(x, y, mass, vx, vy, ax, ay, elasticity, color);
+    super(x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color);
     this.vertices = vertices || [[-5.0, -5.0], [-5.0, 5.0], [5.0, 5.0], [5.0, -5.0]];
   }
   
-  draw(ctx )
+  draw( ctx )
   {
     ctx.strokeStyle = this.color;
     ctx.beginPath();
@@ -156,8 +164,11 @@ class Polygon extends PhysicalObject
   setVertices ( vertices )
   {
     if(!isValidPolygon( vertices ))
-      throw new Error("Given vertices must be in array format [ [x, y], ... [x, y] ]");
+      throw new Error("Given vertices must be in arryAcceleration format [ [x, y], ... [x, y] ]");
     this.vertices = vertices;
+    
+    // update manipulated vertices
+    this.setOrientation( this.angularPosition )
     return vertices;
   }
   
@@ -179,7 +190,7 @@ class Polygon extends PhysicalObject
   }
   
   // addVertex( [ x, y ], pos )
-  // default pos value places vertex at end of vertices array
+  // default pos value places vertex at end of vertices arryAcceleration
   // returns vertex
   addVertex (vertex, pos)
   {
@@ -189,15 +200,46 @@ class Polygon extends PhysicalObject
     return vertex;
   }
   
+  
+  
+  // rotates around center point but that may not be what we want for accurate physics simulation....
+  // rotates in xy plane
+  rotate ( theta )
+  {
+    let rotationMatrix = [[Math.cos(theta), -Math.sin(theta)],
+                          [Math.sin(theta),  Math.cos(theta)]];
+    for ( let i = 0; i < this.vertices.length; i++ )
+    {
+      this.vertices[i] = [rotationMatrix[0][0] * this.vertices[i][0] + rotationMatrix[0][1] * this.vertices[i][1],
+                          rotationMatrix[1][0] * this.vertices[i][0] + rotationMatrix[1][1] * this.vertices[i][1]];
+    };
+    this.angularPosition = theta;
+  }
+  
+  setOrientation ( theta )
+  {
+    this.rotate( theta - this.angularPosition );
+  }
+  
+  
+  resize( scalar )
+  {
+    for ( let e of this.vertices )
+      // second for loop for compatibility with x dimensions
+      for ( let k of e )
+        e[k] *= scalar;
+  }
+  
 }
 
 
 class RegularPolygon extends Polygon
 {
-  constructor({numSides = 6, circumradius = 10, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  constructor({numSides = 6, circumradius = 10, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})
   {
     super({vertices: regularPolygonVertices( numSides, circumradius ), x, y, mass,
-    vx, vy, ax, ay, elasticity, color});
+    xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition,
+    angularVelocity, angularAcceleration, elasticity, color});
     this.circumradius = circumradius;
     this.numSides = numSides;
 
@@ -226,11 +268,12 @@ class RegularPolygon extends Polygon
 
 class Rect extends Polygon
 {
-  constructor({width = 5, height = 5, x, y, mass, vx, vy, ax, ay, elasticity, color})
+  constructor({width = 5, height = 5, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})
   {
     super({vertices: [[-width / 2, -height / 2], [-width / 2, height / 2],
     [width / 2, height / 2], [width / 2, -height / 2]], x, y, mass,
-    vx, vy, ax, ay, elasticity, color});
+    xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition,
+    angularVelocity, angularAcceleration, elasticity, color});
     this.width = width;
     this.height = height;
 
@@ -293,36 +336,24 @@ function setNumValue( val, attr )
   return val;
 }
 
-function checkCollisions( objects )
+function detectCollisionConvexPolygon( ob1, obj2 )
 {
-  if(objects.length === 1) return;
-  for (let i = 0; i < objects.length; i++)
-  {
-    for (let j = i + 1; j < objects.length; j++)
-    {
-      const obj1 = objects[i];
-      const obj2 = objects[j];
-      if (detectCollision(obj1, obj2))
-      {
-        handleCollision(obj1, obj2);
-      }
-    }
-  }
+  
 }
 
-function detectCollision(obj1, obj2)
+
+function detectCollisionCircle(obj1, obj2)
 {
   const distance = Math.sqrt(Math.pow(obj2.x - obj1.x, 2) + Math.pow(obj2.y - obj1.y, 2));
   if (distance <= obj1.radius + obj2.radius)
   {
-    obj1.color = "#0000FF";
-    obj2.color = "#0000FF";
-    return true;
+    handleCollision( obj1, obj2 );
   }
   return false;
 }
 
 function handleCollision(obj1, obj2) 
 {
-  
+  obj1.color = "#0000FF";
+  obj2.color = "#0000FF";
 }
