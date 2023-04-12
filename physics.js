@@ -96,15 +96,15 @@ class PhysicalObject
     {
         this.x = x || 0;
         this.y = y || 0;
-        this.mass = mass || 100;
+        this.mass = mass ?? 100;
         this.xVelocity = xVelocity || 0;
         this.yVelocity = yVelocity || 0;
         this.xAcceleration = xAcceleration || 0;
-        this.yAcceleration = yAcceleration || 9.8;
+        this.yAcceleration = yAcceleration ?? 9.8;
         this.angularPosition = angularPosition || 0;
         this.angularVelocity = angularVelocity || 0;
         this.angularAcceleration = angularAcceleration || 0;
-        this.elasticity = elasticity || 0.5;
+        this.elasticity = elasticity ?? 0.5;
         this.color = color || "#000000";
     }
   
@@ -128,7 +128,7 @@ class Ball extends PhysicalObject
   constructor({radius, x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color})
   {
     super(x, y, mass, xVelocity, yVelocity, xAcceleration, yAcceleration, angularPosition, angularVelocity, angularAcceleration, elasticity, color);
-    this.radius = radius || 5;
+    this.radius = radius ?? 5;
   }
   
   draw( ctx )
@@ -196,7 +196,7 @@ class Polygon extends PhysicalObject
   {
     if(!isValidCoordPair(vertex))
       throw new Error("Given vertex points must be in [x, y] format!");
-    this.vertices.splice(pos || this.vertices.length, 0, vertex);
+    this.vertices.splice(pos ?? this.vertices.length, 0, vertex);
     return vertex;
   }
   
